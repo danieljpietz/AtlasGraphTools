@@ -1,5 +1,5 @@
-#include "AtlasGraphTools.h"
-
+#include "AtlasGraphTools.hpp"
+#include <stdio.h>
 /***********************************************************
  ************************************************************
  ** Constructor for Node Type without parent graph.
@@ -22,12 +22,11 @@ Node::Node(double x, double y) {
  ************************************************************/
 
 Node::Node(Graph *parent, double x, double y) {
-    if (parent == (Node*) NULL) {
-        return NULL_ARG;
-    }
     this->location.x = x;
     this->location.y = y;
-    parent->addNode(this);
+    if (parent == (Graph*) NULL) {
+        parent->addNode(this);
+    }
 }
 
 /***********************************************************
@@ -35,35 +34,120 @@ Node::Node(Graph *parent, double x, double y) {
  ** Function to add a neighbor to a node
  ** A neighbor is defined as a node that
  ** can be reached from this node
+ ** Only Parent Graph will be updated
  ** Argument is the node to be added and distance to neightbor
- ** Special Return Codes: None
+ ** Special Return Codes:
+ **       -1: Indicates Nodes had different parent Graphs
  ************************************************************
  ************************************************************/
 
-int Node::addNeighbor(Node* neighbor, double distance) {
+int Node::addNeighbor(Node* neighbor) {
     if (neighbor == (Node*) NULL) {
         return NULL_ARG;
     }
+    if (this->parent != neighbor->parent || this->parent == (Graph*) NULL) {
+        return -1;
+    }
+    //
+    //Calculate the distance between Nodes
+    //
+    double distance = getNodeDistance(this, neighbor);
+
     //
     // Add node and distance to respective vectors
     //
     this->neighbors.insert(this->neighbors.end(), neighbor);
     this->neighborDistances.insert(this->neighborDistances.end(), distance);
+    this->neighborCount++;
+
+    neighbor->neighbors.insert(neighbor->neighbors.end(), this);
+    neighbor->neighborDistances.insert(neighbor->neighborDistances.end(), distance);
+    neighbor->neighborCount++;
+
     //
     // Check if node is a member of a graph. If so, update the graph to
     // reflect the new connection
     //
-    if (this->parent != NULL) {
-        return this->parent->updateConnections();
-    }
 
-    return SUCCESS;
+    return this->parent->updateConnections();
+
+}
+
+/***********************************************************
+ ************************************************************
+ ** Function to get the distance between two nodes
+ ** Argument is two node pointers
+ ** inlined to reduce function call overhead
+ ** Special Return Codes: None
+ ************************************************************
+ ************************************************************/
+
+ inline double getNodeDistance(Node* node1, Node* node2) {
+     return sqrt((node1->getLocation().x - node2->getLocation().x) *
+                 (node1->getLocation().x - node2->getLocation().x) +
+                 (node1->getLocation().y - node2->getLocation().y) *
+                 (node1->getLocation().y - node2->getLocation().y));
+ }
+
+/***********************************************************
+ ************************************************************
+ ** Function to check if a node neighbors another node
+ ** A neighbor is defined as a node that
+ ** can be reached from this node
+ ** Argument is potential neighbor
+ ** Special Return Codes: None
+ ************************************************************
+ ************************************************************/
+
+int Node::isNeighbor(Node* node) {
+    if (node == (Node*) NULL) {
+        return NULL_ARG;
+    }
+    int i;
+    for (i = 0; i < this->neighborCount; i++) {
+        if (node == this->neighbors[i]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/***********************************************************
+ ************************************************************
+ ** Overloaded print stream operator for Node reference
+ ************************************************************
+ ************************************************************/
+
+std::ostream& operator<<(std::ostream& os, const Node& node) {
+    os << "Node @ (" << node.getLocation().x << ',' << node.getLocation().y << ')'
+       << " with " << node.getNeighborCount() << " neighbors";
+    return os;
+}
+
+/***********************************************************
+ ************************************************************
+ ** Overloaded print stream operator for Node pointer
+ ************************************************************
+ ************************************************************/
+
+std::ostream& operator<<(std::ostream& os, const Node* node) {
+    return os << *node;
+}
+
+/***********************************************************
+ ************************************************************
+ ** Constructor for Graph
+ ** No Arguments
+ ************************************************************
+ ************************************************************/
+
+Graph::Graph() {
 }
 
 /***********************************************************
  ************************************************************
  ** Function to add a node to a graph
- ** Argument is the node to be added
+ ** Argument is pointer to the node to be added
  ** Special Return Codes: None
  ************************************************************
  ************************************************************/
@@ -73,9 +157,10 @@ int Graph::addNode(Node* node) {
         return NULL_ARG;
     }
     //
-    // Assign a nodeID to the node
+    // Assign a nodeID and parent to the node
     //
     node->nodeID = this->nodes.size();
+    node->parent = this;
     //
     // Insert the node at the end of the nodes vector
     // Update graph structure matrix by adding a row and
@@ -83,7 +168,8 @@ int Graph::addNode(Node* node) {
     //
     this->nodes.insert(this->nodes.end(), node);
 
-    std::vector<double> newRow;
+    std::vector<double> newRow(this->nodes.size(), -1);
+
     this->nodeConnections.insert(this->nodeConnections.end(), newRow);
     //
     // Iterate through all rows in matrix and add a column with
@@ -93,6 +179,7 @@ int Graph::addNode(Node* node) {
     for (i = 0; i < this->nodeConnections.size(); i++) {
         this->nodeConnections[i].resize(this->nodes.size(), -1);
     }
+    this->nodeCount++;
     //
     // Update connetions in grapg and return
     // corresponding return code
@@ -109,6 +196,47 @@ int Graph::addNode(Node* node) {
  ************************************************************/
 
 int Graph::updateConnections() {
-
+    int i, j;
+    for (i = 0; i < this->getNodeCount(); i++) {
+      this->nodeConnections[i][i] = 0;
+      for (j = 0; j < i; j++) {
+        if (this->nodes[i]->isNeighbor(this->nodes[j])) {
+          this->nodeConnections[i][j] = getNodeDistance(this->nodes[i], this->nodes[j]);
+          this->nodeConnections[j][i] = this->nodeConnections[i][j];
+        }
+      }
+    }
     return SUCCESS;
+}
+
+/***********************************************************
+ ************************************************************
+ ** Overloaded print stream operator for Graph reference
+ ************************************************************
+ ************************************************************/
+
+std::ostream& operator<<(std::ostream& os, const Graph& graph) {
+    int i, j;
+    os << "Graph with " << graph.getNodeCount() << " nodes" << std::endl;
+    os << graph.getNodeConnections()[0][0];
+    for (j = 1; j < graph.getNodeCount(); j++) {
+        os << "," << graph.getNodeConnections()[0][j];
+    }
+    for (i = 1; i < graph.getNodeCount(); i++) {
+        os << std::endl << graph.getNodeConnections()[i][0];
+        for (int j = 1; j < graph.getNodeCount(); j++) {
+            os << "," << graph.getNodeConnections()[i][j];
+        }
+    }
+    return os;
+}
+
+/***********************************************************
+ ************************************************************
+ ** Overloaded print stream operator for Graph pointer
+ ************************************************************
+ ************************************************************/
+
+std::ostream& operator<<(std::ostream& os, const Graph* graph) {
+    return os << *graph;
 }
