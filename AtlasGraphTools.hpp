@@ -2,6 +2,7 @@
 #define AtlasGraphTools_h
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <syslog.h>
 #include <math.h>
 /************************************************************
@@ -19,9 +20,9 @@ typedef struct {double x; double y;} point_t; // Represents a 2-dimensional
  ************************************************************
  ************************************************************/
 
-#define SUCCESS 1   // Indicates function executed succesfully
+#define SUCCESS 1      // Indicates function executed succesfully
 #define NULL_ARG -127  // Indicates a null pointer was passed
-                    // as a function arg
+                       // as a function arg
 
 /************************************************************
  ************************************************************
@@ -50,8 +51,7 @@ private:
     unsigned int nodeID; // Specifies the index of this node in its parent graph
     std::vector<Node *> neighbors; // Nodes this node has a conection to
     std::vector<double> neighborDistances; // Distance to a given node relative
-                                           // to neighbors array. -1 indicates
-                                           //no connection
+                                           // to neighbors array
     int neighborCount; // Number of neighbor connectios to this node
 public:
     //
@@ -63,8 +63,8 @@ public:
     //
     // Member Functions
     //
-    int addNeighbor(Node* neighbor); //Add a connection to this
-                                                      //node
+    int addNeighbor(Node* neighbor); //Add a connection to this node1
+
     point_t getLocation() const { // Returns the physical location of the node
       return this->location;      // Inlined to eliminate function call overhead
     }
@@ -87,6 +87,7 @@ public:
 std::ostream& operator<<(std::ostream& os, const Node& node);
 std::ostream& operator<<(std::ostream& os, const Node* node);
 inline double getNodeDistance(Node* node1, Node* node2);
+
 /************************************************************
  ************************************************************
  ** Graph Class Definition

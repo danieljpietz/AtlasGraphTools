@@ -52,7 +52,6 @@ int Node::addNeighbor(Node* neighbor) {
     //Calculate the distance between Nodes
     //
     double distance = getNodeDistance(this, neighbor);
-
     //
     // Add node and distance to respective vectors
     //
@@ -181,7 +180,7 @@ int Graph::addNode(Node* node) {
     }
     this->nodeCount++;
     //
-    // Update connetions in grapg and return
+    // Update connetions in graph and return
     // corresponding return code
     //
     return this->updateConnections();
@@ -201,8 +200,10 @@ int Graph::updateConnections() {
       this->nodeConnections[i][i] = 0;
       for (j = 0; j < i; j++) {
         if (this->nodes[i]->isNeighbor(this->nodes[j])) {
-          this->nodeConnections[i][j] = getNodeDistance(this->nodes[i], this->nodes[j]);
-          this->nodeConnections[j][i] = this->nodeConnections[i][j];
+          this->nodeConnections[i][j] = this->nodeConnections[j][i] = getNodeDistance(this->nodes[i], this->nodes[j]);
+        }
+        else {
+          this->nodeConnections[i][j] = this->nodeConnections[j][i] = 0;
         }
       }
     }
@@ -218,15 +219,17 @@ int Graph::updateConnections() {
 std::ostream& operator<<(std::ostream& os, const Graph& graph) {
     int i, j;
     os << "Graph with " << graph.getNodeCount() << " nodes" << std::endl;
-    os << graph.getNodeConnections()[0][0];
+    os << std::fixed << "|" << graph.getNodeConnections()[0][0];
     for (j = 1; j < graph.getNodeCount(); j++) {
-        os << "," << graph.getNodeConnections()[0][j];
+        os << " " << graph.getNodeConnections()[0][j];
     }
+    os << "|";
     for (i = 1; i < graph.getNodeCount(); i++) {
-        os << std::endl << graph.getNodeConnections()[i][0];
+        os << std::endl << "|" << graph.getNodeConnections()[i][0];
         for (int j = 1; j < graph.getNodeCount(); j++) {
-            os << "," << graph.getNodeConnections()[i][j];
+            os << " " << graph.getNodeConnections()[i][j];
         }
+        os << "|";
     }
     return os;
 }
