@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <stdio.h>
 #include <syslog.h>
 #include <math.h>
 /************************************************************
@@ -16,7 +17,7 @@ typedef struct {double x; double y;} point_t; // Represents a 2-dimensional
 
 /************************************************************
  ************************************************************
- ** Error Code Returns for AtlasGraphTools
+ ** Code Returns for AtlasGraphTools
  ************************************************************
  ************************************************************/
 
@@ -59,11 +60,11 @@ public:
     //
     Node (double x, double y); //Default Constructor for node with no graph
     Node (Graph* parent, double x, double y); //Constructor for node with a graph
-    int isNeighbor(Node* node); // Checks if node neighbors this
     //
     // Member Functions
     //
-    int addNeighbor(Node* neighbor); //Add a connection to this node1
+    int isNeighbor(Node* node); // Checks if node neighbors this
+    int addNeighbor(Node* neighbor); //Add a connection to this node
 
     point_t getLocation() const { // Returns the physical location of the node
       return this->location;      // Inlined to eliminate function call overhead
@@ -118,7 +119,6 @@ public:
     int getNodeCount () const {
       return this->nodeCount;
     }
-
     std::vector<std::vector<double> > getNodeConnections() const {
       return this->nodeConnections;
     }

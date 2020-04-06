@@ -1,5 +1,5 @@
 #include "AtlasGraphTools.hpp"
-#include <stdio.h>
+
 /***********************************************************
  ************************************************************
  ** Constructor for Node Type without parent graph.
@@ -12,6 +12,7 @@ Node::Node(double x, double y) {
     this->location.x = x;
     this->location.y = y;
     this->parent = NULL;
+    this->neighborCount = 0;
 }
 
 /***********************************************************
@@ -24,7 +25,8 @@ Node::Node(double x, double y) {
 Node::Node(Graph *parent, double x, double y) {
     this->location.x = x;
     this->location.y = y;
-    if (parent == (Graph*) NULL) {
+    this->neighborCount = 0;
+    if (parent != (Graph*) NULL) {
         parent->addNode(this);
     }
 }
@@ -50,6 +52,9 @@ int Node::addNeighbor(Node* neighbor) {
     }
     //
     //Calculate the distance between Nodes
+    // No need to check return code on distance as
+    // this and neighbor are known to be not null
+    // At this point
     //
     double distance = getNodeDistance(this, neighbor);
     //
@@ -64,8 +69,7 @@ int Node::addNeighbor(Node* neighbor) {
     neighbor->neighborCount++;
 
     //
-    // Check if node is a member of a graph. If so, update the graph to
-    // reflect the new connection
+    // update the parent graph reflect the new connection
     //
 
     return this->parent->updateConnections();
@@ -82,6 +86,9 @@ int Node::addNeighbor(Node* neighbor) {
  ************************************************************/
 
  inline double getNodeDistance(Node* node1, Node* node2) {
+     if (node1 == (Node*) NULL || node2 == (Node*) NULL) {
+       return NULL_ARG;
+     }
      return sqrt((node1->getLocation().x - node2->getLocation().x) *
                  (node1->getLocation().x - node2->getLocation().x) +
                  (node1->getLocation().y - node2->getLocation().y) *
@@ -103,7 +110,7 @@ int Node::isNeighbor(Node* node) {
         return NULL_ARG;
     }
     int i;
-    for (i = 0; i < this->neighborCount; i++) {
+    for (i = 0; i < this->neighbors.size(); i++) {
         if (node == this->neighbors[i]) {
             return 1;
         }
@@ -141,6 +148,7 @@ std::ostream& operator<<(std::ostream& os, const Node* node) {
  ************************************************************/
 
 Graph::Graph() {
+  this->nodeCount = 0;
 }
 
 /***********************************************************
@@ -176,7 +184,7 @@ int Graph::addNode(Node* node) {
     //
     int i;
     for (i = 0; i < this->nodeConnections.size(); i++) {
-        this->nodeConnections[i].resize(this->nodes.size(), -1);
+        this->nodeConnections[i].resize(this->nodes.size(), 0);
     }
     this->nodeCount++;
     //
