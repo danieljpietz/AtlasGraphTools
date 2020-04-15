@@ -279,3 +279,27 @@ std::ostream &operator<<(std::ostream &os, const Graph *graph)
 {
     return os << *graph;
 }
+
+/***********************************************************
+ ************************************************************
+ ** Constructor for PriortyQueue
+ ** Arugment is goal node for the path
+ ************************************************************
+ ************************************************************/
+
+PriorityQueue::PriorityQueue(Node* goalNode) {
+    this->count = 0;
+    this->goalNode = goalNode;
+}
+
+/***********************************************************
+ ************************************************************
+ ** Function implementation for Insert
+ ** Takes node to be added into queu
+ ** No Special Return Codes
+ ************************************************************
+ ************************************************************/
+
+PriorityQueue::insert(Node* node) {
+
+}

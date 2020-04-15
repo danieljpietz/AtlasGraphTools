@@ -174,11 +174,13 @@ std::ostream &operator<<(std::ostream &os, const Graph *graph);
 class PriorityQueue
 {
 private:
+  Node* goalNode;
   std::vector<Node *> nodes;
   std::vector<float> heuristic;
   int count;
 
 public:
+  PriorityQueue();
   int insert(Node *node);
   Node *pop();
   int removeNode(Node *node);
