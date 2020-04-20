@@ -29,6 +29,9 @@ Node::Node(Graph *parent, double x, double y) {
     if (parent != (Graph*) NULL) {
         parent->addNode(this);
     }
+    else {
+
+    }
 }
 
 /***********************************************************
@@ -175,7 +178,7 @@ int Graph::addNode(Node* node) {
     //
     this->nodes.insert(this->nodes.end(), node);
 
-    std::vector<double> newRow(this->nodes.size(), -1);
+    std::vector<double> newRow(this->nodes.size(), 0);
 
     this->nodeConnections.insert(this->nodeConnections.end(), newRow);
     //

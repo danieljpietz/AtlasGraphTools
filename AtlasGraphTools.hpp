@@ -3,7 +3,6 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
-#include <stdio.h>
 #include <syslog.h>
 #include <math.h>
 /************************************************************
