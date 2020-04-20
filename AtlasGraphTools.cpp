@@ -93,7 +93,7 @@ int Node::addNeighbor(Node *neighbor)
  ************************************************************
  ************************************************************/
 
-inline float getNodeDistance(Node *node1, Node *node2)
+float getNodeDistance(Node *node1, Node *node2)
 {
     if (node1 == (Node *)NULL || node2 == (Node *)NULL)
     {
@@ -194,11 +194,8 @@ int Graph::addNode(Node *node)
     //
     this->nodes.insert(this->nodes.end(), node);
 
-<<<<<<< HEAD
-    std::vector<double> newRow(this->nodes.size(), 0);
-=======
     std::vector<float> newRow(this->nodes.size(), -1);
->>>>>>> 9b47e5d961e9449304c115c4a6b717f0c982eed5
+
 
     this->nodeConnections.insert(this->nodeConnections.end(), newRow);
     //
@@ -377,7 +374,7 @@ int PriorityQueue::insert(Node *node, float pathLength)
             // Node has already been visited with a longer path. Remove the node and before adding again
             //
 
-            this->removeNode(nodeIndex);
+            //this->removeNode(nodeIndex);
         }
     }
 

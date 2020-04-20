@@ -10,11 +10,8 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
-<<<<<<< HEAD
-#include <syslog.h>
-=======
 #include <stdio.h>
->>>>>>> 9b47e5d961e9449304c115c4a6b717f0c982eed5
+
 #include <math.h>
 
 /************************************************************
@@ -130,7 +127,8 @@ public:
 
 std::ostream &operator<<(std::ostream &os, const Node &node);
 std::ostream &operator<<(std::ostream &os, const Node *node);
-inline float getNodeDistance(Node *node1, Node *node2);
+float getNodeDistance(Node *node1, Node *node2);
+
 
 /************************************************************
  ************************************************************
