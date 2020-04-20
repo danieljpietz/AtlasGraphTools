@@ -7,7 +7,8 @@
  ************************************************************
  ************************************************************/
 
-Node::Node(double x, double y) {
+Node::Node(float x, float y)
+{
     this->nodeID = -1;
     this->location.x = x;
     this->location.y = y;
@@ -22,11 +23,13 @@ Node::Node(double x, double y) {
  ************************************************************
  ************************************************************/
 
-Node::Node(Graph *parent, double x, double y) {
+Node::Node(Graph *parent, float x, float y)
+{
     this->location.x = x;
     this->location.y = y;
     this->neighborCount = 0;
-    if (parent != (Graph*) NULL) {
+    if (parent != (Graph *)NULL)
+    {
         parent->addNode(this);
     }
     else {
@@ -46,11 +49,14 @@ Node::Node(Graph *parent, double x, double y) {
  ************************************************************
  ************************************************************/
 
-int Node::addNeighbor(Node* neighbor) {
-    if (neighbor == (Node*) NULL) {
+int Node::addNeighbor(Node *neighbor)
+{
+    if (neighbor == (Node *)NULL)
+    {
         return NULL_ARG;
     }
-    if (this->parent != neighbor->parent || this->parent == (Graph*) NULL) {
+    if (this->parent != neighbor->parent || this->parent == (Graph *)NULL)
+    {
         return -1;
     }
     //
@@ -59,7 +65,7 @@ int Node::addNeighbor(Node* neighbor) {
     // this and neighbor are known to be not null
     // At this point
     //
-    double distance = getNodeDistance(this, neighbor);
+    float distance = getNodeDistance(this, neighbor);
     //
     // Add node and distance to respective vectors
     //
@@ -76,7 +82,6 @@ int Node::addNeighbor(Node* neighbor) {
     //
 
     return this->parent->updateConnections();
-
 }
 
 /***********************************************************
@@ -88,15 +93,17 @@ int Node::addNeighbor(Node* neighbor) {
  ************************************************************
  ************************************************************/
 
- inline double getNodeDistance(Node* node1, Node* node2) {
-     if (node1 == (Node*) NULL || node2 == (Node*) NULL) {
-       return NULL_ARG;
-     }
-     return sqrt((node1->getLocation().x - node2->getLocation().x) *
-                 (node1->getLocation().x - node2->getLocation().x) +
-                 (node1->getLocation().y - node2->getLocation().y) *
-                 (node1->getLocation().y - node2->getLocation().y));
- }
+inline float getNodeDistance(Node *node1, Node *node2)
+{
+    if (node1 == (Node *)NULL || node2 == (Node *)NULL)
+    {
+        return NULL_ARG;
+    }
+    return sqrt((node1->getLocation().x - node2->getLocation().x) *
+                    (node1->getLocation().x - node2->getLocation().x) +
+                (node1->getLocation().y - node2->getLocation().y) *
+                    (node1->getLocation().y - node2->getLocation().y));
+}
 
 /***********************************************************
  ************************************************************
@@ -108,13 +115,17 @@ int Node::addNeighbor(Node* neighbor) {
  ************************************************************
  ************************************************************/
 
-int Node::isNeighbor(Node* node) {
-    if (node == (Node*) NULL) {
+int Node::isNeighbor(Node *node)
+{
+    if (node == (Node *)NULL)
+    {
         return NULL_ARG;
     }
     int i;
-    for (i = 0; i < this->neighbors.size(); i++) {
-        if (node == this->neighbors[i]) {
+    for (i = 0; i < (int)this->neighbors.size(); i++)
+    {
+        if (node == this->neighbors[i])
+        {
             return 1;
         }
     }
@@ -127,7 +138,8 @@ int Node::isNeighbor(Node* node) {
  ************************************************************
  ************************************************************/
 
-std::ostream& operator<<(std::ostream& os, const Node& node) {
+std::ostream &operator<<(std::ostream &os, const Node &node)
+{
     os << "Node @ (" << node.getLocation().x << ',' << node.getLocation().y << ')'
        << " with " << node.getNeighborCount() << " neighbors";
     return os;
@@ -139,7 +151,8 @@ std::ostream& operator<<(std::ostream& os, const Node& node) {
  ************************************************************
  ************************************************************/
 
-std::ostream& operator<<(std::ostream& os, const Node* node) {
+std::ostream &operator<<(std::ostream &os, const Node *node)
+{
     return os << *node;
 }
 
@@ -150,8 +163,9 @@ std::ostream& operator<<(std::ostream& os, const Node* node) {
  ************************************************************
  ************************************************************/
 
-Graph::Graph() {
-  this->nodeCount = 0;
+Graph::Graph()
+{
+    this->nodeCount = 0;
 }
 
 /***********************************************************
@@ -162,8 +176,10 @@ Graph::Graph() {
  ************************************************************
  ************************************************************/
 
-int Graph::addNode(Node* node) {
-    if (node == (Node*) NULL) {
+int Graph::addNode(Node *node)
+{
+    if (node == (Node *)NULL)
+    {
         return NULL_ARG;
     }
     //
@@ -178,7 +194,11 @@ int Graph::addNode(Node* node) {
     //
     this->nodes.insert(this->nodes.end(), node);
 
+<<<<<<< HEAD
     std::vector<double> newRow(this->nodes.size(), 0);
+=======
+    std::vector<float> newRow(this->nodes.size(), -1);
+>>>>>>> 9b47e5d961e9449304c115c4a6b717f0c982eed5
 
     this->nodeConnections.insert(this->nodeConnections.end(), newRow);
     //
@@ -186,7 +206,8 @@ int Graph::addNode(Node* node) {
     // no connection
     //
     int i;
-    for (i = 0; i < this->nodeConnections.size(); i++) {
+    for (i = 0; i < this->nodeConnections.size(); i++)
+    {
         this->nodeConnections[i].resize(this->nodes.size(), 0);
     }
     this->nodeCount++;
@@ -205,18 +226,23 @@ int Graph::addNode(Node* node) {
  ************************************************************
  ************************************************************/
 
-int Graph::updateConnections() {
+int Graph::updateConnections()
+{
     int i, j;
-    for (i = 0; i < this->getNodeCount(); i++) {
-      this->nodeConnections[i][i] = 0;
-      for (j = 0; j < i; j++) {
-        if (this->nodes[i]->isNeighbor(this->nodes[j])) {
-          this->nodeConnections[i][j] = this->nodeConnections[j][i] = getNodeDistance(this->nodes[i], this->nodes[j]);
+    for (i = 0; i < this->getNodeCount(); i++)
+    {
+        this->nodeConnections[i][i] = 0;
+        for (j = 0; j < i; j++)
+        {
+            if (this->nodes[i]->isNeighbor(this->nodes[j]))
+            {
+                this->nodeConnections[i][j] = this->nodeConnections[j][i] = getNodeDistance(this->nodes[i], this->nodes[j]);
+            }
+            else
+            {
+                this->nodeConnections[i][j] = this->nodeConnections[j][i] = 0;
+            }
         }
-        else {
-          this->nodeConnections[i][j] = this->nodeConnections[j][i] = 0;
-        }
-      }
     }
     return SUCCESS;
 }
@@ -227,17 +253,22 @@ int Graph::updateConnections() {
  ************************************************************
  ************************************************************/
 
-std::ostream& operator<<(std::ostream& os, const Graph& graph) {
+std::ostream &operator<<(std::ostream &os, const Graph &graph)
+{
     int i, j;
     os << "Graph with " << graph.getNodeCount() << " nodes" << std::endl;
     os << std::fixed << "|" << graph.getNodeConnections()[0][0];
-    for (j = 1; j < graph.getNodeCount(); j++) {
+    for (j = 1; j < graph.getNodeCount(); j++)
+    {
         os << " " << graph.getNodeConnections()[0][j];
     }
     os << "|";
-    for (i = 1; i < graph.getNodeCount(); i++) {
-        os << std::endl << "|" << graph.getNodeConnections()[i][0];
-        for (int j = 1; j < graph.getNodeCount(); j++) {
+    for (i = 1; i < graph.getNodeCount(); i++)
+    {
+        os << std::endl
+           << "|" << graph.getNodeConnections()[i][0];
+        for (int j = 1; j < graph.getNodeCount(); j++)
+        {
             os << " " << graph.getNodeConnections()[i][j];
         }
         os << "|";
@@ -251,6 +282,31 @@ std::ostream& operator<<(std::ostream& os, const Graph& graph) {
  ************************************************************
  ************************************************************/
 
-std::ostream& operator<<(std::ostream& os, const Graph* graph) {
+std::ostream &operator<<(std::ostream &os, const Graph *graph)
+{
     return os << *graph;
+}
+
+/***********************************************************
+ ************************************************************
+ ** Constructor for PriortyQueue
+ ** Arugment is goal node for the path
+ ************************************************************
+ ************************************************************/
+
+PriorityQueue::PriorityQueue(Node* goalNode) {
+    this->count = 0;
+    this->goalNode = goalNode;
+}
+
+/***********************************************************
+ ************************************************************
+ ** Function implementation for Insert
+ ** Takes node to be added into queu
+ ** No Special Return Codes
+ ************************************************************
+ ************************************************************/
+
+PriorityQueue::insert(Node* node) {
+
 }
