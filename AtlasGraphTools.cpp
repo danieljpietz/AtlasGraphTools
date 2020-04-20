@@ -12,30 +12,9 @@ Node::Node(float x, float y)
     this->nodeID = -1;
     this->location.x = x;
     this->location.y = y;
-    this->parent = NULL;
     this->neighborCount = 0;
 }
 
-/***********************************************************
- ************************************************************
- ** Constructor for Node Type with parent graph.
- ** Arguments are x and y position of node in cartesian space
- ************************************************************
- ************************************************************/
-
-Node::Node(Graph *parent, float x, float y)
-{
-    this->location.x = x;
-    this->location.y = y;
-    this->neighborCount = 0;
-    if (parent != (Graph *)NULL)
-    {
-        parent->addNode(this);
-    }
-    else {
-
-    }
-}
 
 /***********************************************************
  ************************************************************
@@ -57,16 +36,6 @@ int Node::addNeighbor(Node *neighbor)
         return NULL_ARG;
     }
 
-//
-// This dependency has been removed, Processing will be purely linked list for speed
-//
-
-#if 0
-    if (this->parent != neighbor->parent || this->parent == (Graph *)NULL)
-    {
-        return -1;
-    }
-#endif
     //
     // Check if the nodes are already neighbors
     //
@@ -96,13 +65,8 @@ int Node::addNeighbor(Node *neighbor)
     neighbor->neighborDistances.insert(neighbor->neighborDistances.end(), distance);
     neighbor->neighborCount++;
 
-    //
-    // update the parent graph reflect the new connection
-    //
     return SUCCESS;
-#if 0
-    return this->parent->updateConnections();
-#endif
+
 }
 
 /***********************************************************
@@ -156,167 +120,14 @@ int Node::isNeighbor(Node *node)
 
 /***********************************************************
  ************************************************************
- ** Overloaded print stream operator for Node reference
+ ** Constructor for PriorityQueue Type
+ ** Arguments is the goal node to be reached in this queue
  ************************************************************
  ************************************************************/
 
-std::ostream &operator<<(std::ostream &os, const Node &node)
-{
-    os << "Node @ (" << node.getLocation().x << ',' << node.getLocation().y << ')'
-       << " with " << node.getNeighborCount() << " neighbors";
-    return os;
-}
-
-/***********************************************************
- ************************************************************
- ** Overloaded print stream operator for Node pointer
- ************************************************************
- ************************************************************/
-
-std::ostream &operator<<(std::ostream &os, const Node *node)
-{
-    return os << *node;
-}
-
-/***********************************************************
- ************************************************************
- ** Constructor for Graph
- ** No Arguments
- ************************************************************
- ************************************************************/
-
-Graph::Graph()
-{
-    this->nodeCount = 0;
-}
-
-/***********************************************************
- ************************************************************
- ** Function to add a node to a graph
- ** Argument is pointer to the node to be added
- ** Special Return Codes: None
- ************************************************************
- ************************************************************/
-
-int Graph::addNode(Node *node)
-{
-    if (node == (Node *)NULL)
-    {
-        return NULL_ARG;
-    }
-    //
-    // Assign a nodeID and parent to the node
-    //
-    node->nodeID = this->nodes.size();
-    node->parent = this;
-    //
-    // Insert the node at the end of the nodes vector
-    // Update graph structure matrix by adding a row and
-    // column
-    //
-    this->nodes.insert(this->nodes.end(), node);
-
-    std::vector<float> newRow(this->nodes.size(), -1);
-
-
-    this->nodeConnections.insert(this->nodeConnections.end(), newRow);
-    //
-    // Iterate through all rows in matrix and add a column with
-    // no connection
-    //
-    int i;
-    for (i = 0; i < (int)this->nodeConnections.size(); i++)
-    {
-        this->nodeConnections[i].resize(this->nodes.size(), 0);
-    }
-    this->nodeCount++;
-    //
-    // Update connetions in graph and return
-    // corresponding return code
-    //
-    return this->updateConnections();
-}
-
-/***********************************************************
- ************************************************************
- ** Function to update node connections in a graph
- ** No Arguments
- ** Special Return Codes: None
- ************************************************************
- ************************************************************/
-
-int Graph::updateConnections()
-{
-    int i, j;
-    for (i = 0; i < this->getNodeCount(); i++)
-    {
-        this->nodeConnections[i][i] = 0;
-        for (j = 0; j < i; j++)
-        {
-            if (this->nodes[i]->isNeighbor(this->nodes[j]))
-            {
-                this->nodeConnections[i][j] = this->nodeConnections[j][i] = getNodeDistance(this->nodes[i], this->nodes[j]);
-            }
-            else
-            {
-                this->nodeConnections[i][j] = this->nodeConnections[j][i] = 0;
-            }
-        }
-    }
-    return SUCCESS;
-}
-
-/***********************************************************
- ************************************************************
- ** Overloaded print stream operator for Graph reference
- ************************************************************
- ************************************************************/
-
-std::ostream &operator<<(std::ostream &os, const Graph &graph)
-{
-    int i, j;
-    os << "Graph with " << graph.getNodeCount() << " nodes" << std::endl;
-    os << std::fixed << "|" << graph.getNodeConnections()[0][0];
-    for (j = 1; j < graph.getNodeCount(); j++)
-    {
-        os << " " << graph.getNodeConnections()[0][j];
-    }
-    os << "|";
-    for (i = 1; i < graph.getNodeCount(); i++)
-    {
-        os << std::endl
-           << "|" << graph.getNodeConnections()[i][0];
-        for (int j = 1; j < graph.getNodeCount(); j++)
-        {
-            os << " " << graph.getNodeConnections()[i][j];
-        }
-        os << "|";
-    }
-    return os;
-}
-
-/***********************************************************
- ************************************************************
- ** Overloaded print stream operator for Graph pointer
- ************************************************************
- ************************************************************/
-
-std::ostream &operator<<(std::ostream &os, const Graph *graph)
-{
-    return os << *graph;
-}
-
-/***********************************************************
- ************************************************************
- ** Constructor for PriortyQueue
- ** Arugment is goal node for the path
- ************************************************************
- ************************************************************/
-
-PriorityQueue::PriorityQueue(Node *goalNode)
-{
-    this->count = 0;
+PriorityQueue::PriorityQueue(Node *goalNode) {
     this->goalNode = goalNode;
+    this->count = 0;
 }
 
 /***********************************************************
@@ -349,9 +160,41 @@ int PriorityQueue::getNodeIndex(Node *node)
 
 /***********************************************************
  ************************************************************
+ ** Function implementation for GetNodeAtIndex
+ ** Takes the node index
+ ** No special return codes
+ ************************************************************
+ ************************************************************/
+
+Node* PriorityQueue::getNodeAtIndex(int index) const {
+   if(index < this->count)
+   return this->nodes[index];
+   else {
+       return (Node*)OUT_OF_BOUNDS;
+   }
+}
+
+/***********************************************************
+ ************************************************************
+ ** Function implementation for getHeuristicAtIndex
+ ** Takes the index
+ ** No special return codes
+ ************************************************************
+ ************************************************************/
+
+float PriorityQueue::getHeuristicAtIndex(int index) const {
+   if(index < this->count)
+   return this->heuristics[index];
+   else {
+       return OUT_OF_BOUNDS;
+   }
+}
+
+/***********************************************************
+ ************************************************************
  ** Function implementation for Insert
  ** Takes node to be added into queue
- ** No Special Return Codes
+ ** Returns -2 if the node is already in the queue in a better path
  ************************************************************
  ************************************************************/
 
@@ -387,7 +230,7 @@ int PriorityQueue::insert(Node *node, float pathLength)
             // Node has already been visited with a shorter path. No action necesary.
             //
 
-            return 1;
+            return -2;
         }
         else
         {
@@ -403,16 +246,19 @@ int PriorityQueue::insert(Node *node, float pathLength)
     int index;
     int insertIndex = this->count;
 
+    this->nodes.resize(this->count+1);
+    this->heuristics.resize(this->count+1);
+
     for (index = 0; index < this->count; index++)
     {
-        if (newHeuristic < heuristics[index])
+        if (newHeuristic > heuristics[index])
         {
             insertIndex = index;
             break;
         }
     }
 
-    for (; index < this->count; index++)
+    for (index = this->count - 1; index >= insertIndex; index--)
     {
         this->nodes[index + 1] = this->nodes[index];
         this->heuristics[index + 1] = this->heuristics[index];
@@ -420,5 +266,6 @@ int PriorityQueue::insert(Node *node, float pathLength)
 
     this->nodes[insertIndex] = node;
     this->heuristics[insertIndex] = newHeuristic;
-    return 1;
+    this->count++;
+    return SUCCESS;
 }

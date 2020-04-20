@@ -10,35 +10,49 @@ using namespace std;
 
 int main(int argc, char const* argv[]) {
     srand (time(NULL));
-    int i; float rc;
+    int i, j; float rc;
+
+    /***********************************************
+    ************************************************
+    The following unit tests test all functions include
+    in Node class
+    ************************************************
+    ***********************************************/
 
     //
     // The Following Unit Tests checks neighbor functionality for 1M nodes
     // these nodes are generated at random and randomly assigned nodes
     // node pairs are then checked at random to connetivity
     //
-    std::cout << "Beginning node connection verification test " << std::endl;
+    std::cout << "Beginning node connection verification test: ";
 
-   Node* nodeN1 = new Node(0,0);
-   Node* nodeN2 = new Node(0,0);
+    Node* nodeN1 = new Node(0,0);
+    Node* nodeN2 = new Node(0,0);
+    Node* nodeN3 = new Node(0,0);
 
-   rc = nodeN1->isNeighbor(nodeN2); // Show that the nodes are not neighbors
-   assert(rc == 0);
-   rc = nodeN2->isNeighbor(nodeN1); // Show that the nodes are not neighbors
-   assert(rc == 0);
-   rc = nodeN1->addNeighbor(nodeN2); // Add neighbor
-   assert(rc == SUCCESS);
-   rc = nodeN2->isNeighbor(nodeN1); // Show that the nodes are neighbors
-   assert(rc == 1);
-   rc = nodeN1->isNeighbor(nodeN2); // Show that the nodes are neighbors
-   assert(rc == 1);
-   rc = nodeN1->addNeighbor(nodeN2); // Show protection against double adding
-   assert(rc == -2);
-   rc = nodeN2->addNeighbor(nodeN1); // Show protection against double adding
-   assert(rc == -2);
-   std::cout << "Test Passed" << std::endl;
+    rc = nodeN1->isNeighbor(nodeN2); // Show that the nodes are not neighbors
+    assert(rc == 0);
+    rc = nodeN2->isNeighbor(nodeN1); // Show that the nodes are not neighbors
+    assert(rc == 0);
+    rc = nodeN1->addNeighbor(nodeN2); // Add neighbor
+    assert(rc == SUCCESS);
+    rc = nodeN1->isNeighbor(nodeN3); // Show that the nodes are not neighbors
+    assert(rc == 0);
+    rc = nodeN1->addNeighbor(nodeN3); // Add neighbor
+    assert(rc == SUCCESS);
+    rc = nodeN1->addNeighbor(0x0); // Add a null neighbor
+    assert(rc == NULL_ARG);
+    rc = nodeN2->isNeighbor(nodeN1); // Show that the nodes are neighbors
+    assert(rc == 1);
+    rc = nodeN1->isNeighbor(nodeN2); // Show that the nodes are neighbors
+    assert(rc == 1);
+    rc = nodeN1->addNeighbor(nodeN2); // Show protection against double adding
+    assert(rc == -2);
+    rc = nodeN2->addNeighbor(nodeN1); // Show protection against double adding
+    assert(rc == -2);
+    std::cout << "Test Passed" << std::endl;
 
-   std::cout << "Beginning node connection nullarg test " << std::endl;
+    std::cout << "Beginning node connection nullarg test: ";
 
     Node *noden1 = new Node(0,0);
     Node *noden2 = new Node(0,0);
@@ -72,11 +86,10 @@ int main(int argc, char const* argv[]) {
     }
     std::cout << "Test passed" << std::endl;
 
-
     //
     // The Following Unit Tests shows crashing for null arg on the distance function
     //
-    std::cout << "Beginning node distance function nullarg test" << std::endl;
+    std::cout << "Beginning node distance function nullarg test: ";
 
     Node *noded1 = new Node(0,0);
     Node *noded2 = new Node(0,0);
@@ -96,6 +109,88 @@ int main(int argc, char const* argv[]) {
     std::cout << "Test Passed" << std::endl;
 
 
+
+    /***********************************************
+    ************************************************
+    The following unit tests test all functions include
+    in PriorityQueue class
+    ************************************************
+    ***********************************************/
+
+    std::cout << "Beginning PriorityQueue Tests" << std::endl;
+
+    const int queueSize = 15;
+
+    Node *queueNodes[queueSize];
+    queueNodes[0] = new Node(0,0); // Insert a known shortest node
+    Node *goalNode = new Node(25,25); // Insert a known goal node
+    PriorityQueue *queue = new PriorityQueue(goalNode);
+    rc = queue->insert(queueNodes[0], -getNodeDistance(queueNodes[0], goalNode)); // Force this node to be the shortest path
+    assert(rc == SUCCESS);
+    rc = queue->insert(0x0, 1); //Insert a bad address
+    std::cout << "Beginning Insert nullarg test: ";
+    assert(rc == NULL_ARG);
+    std::cout << "Test Passed" << std::endl;
+
+    //
+    // Generate 15 random nodes and add them to the queue
+    //
+    std::cout << "Beginning Positive Insert Test" << std::endl;
+    for (i = 1; i < queueSize; i++) {
+        float x1 = -100 + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(200)));
+        float y1 = -100 + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(200)));
+        queueNodes[i] = new Node(x1,y1);
+        rc = queue->insert(queueNodes[i], static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(200))));
+        assert(rc == SUCCESS);
+    }
+    std::cout << "Test Passed" << std::endl;
+    //
+    // Assign a random node to be connected to the goal
+    //
+
+    queueNodes[rand() % queueSize]->addNeighbor(goalNode);
+
+    //
+    // Give each node up to 5 neighbors
+    //
+
+    for (i = 0; i < queueSize; i++) {
+       int neighborCount = rand() % 5;
+       if (queueNodes[i]->getNeighborCount() > 4) {
+            continue;
+        }
+       for (j = 0; j < neighborCount; j++) {
+           rc = queueNodes[i]->addNeighbor(queueNodes[rand() % queueSize]);
+           assert(rc == SUCCESS || rc == -2); // Allow success and duplicate entries
+       }
+    }
+
+    std::cout << "Beginning getIndex nullarg test: ";
+    rc = queue->getNodeIndex(0x0);
+    assert(rc == NULL_ARG);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning PriorityQueue sorted test: ";
+    for (i = 0; i < queueSize-1; i++) {
+        assert(queue->getHeuristicAtIndex(i) > queue->getHeuristicAtIndex(i+1));
+    }
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning PriorityQueue indexing out of bounds test: ";
+    assert(queue->getNodeAtIndex(queueSize + 1) == (Node*)OUT_OF_BOUNDS);
+    assert(queue->getHeuristicAtIndex(queueSize + 1) == OUT_OF_BOUNDS);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning PriorityQueue positive indexing test: ";
+    assert(queue->getNodeAtIndex(queueSize-1) == queueNodes[0]);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning queue reinsert test: ";
+    rc = queue->insert(queueNodes[0], 300);
+    assert(rc == -2);
+    rc = queue->insert(queueNodes[0], -getNodeDistance(queueNodes[0], goalNode) - 1);
+    assert(rc == SUCCESS);
+    std::cout << "Test Passed" << std::endl;
 
     return 0;
 }
