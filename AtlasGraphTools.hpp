@@ -19,7 +19,7 @@
  ************************************************************
  ************************************************************/
 #ifndef __WIN32
-#include <syslog.h>
+//#include <syslog.h>
 #endif
 
 /************************************************************
@@ -42,7 +42,7 @@ typedef struct
  ************************************************************/
 
 #define SUCCESS 1     // Indicates function executed succesfully
-#define NULL_ARG -127 // Indicates a null pointer was passed \
+#define NULL_ARG -127 // Indicates a null pointer was passed
                       // as a function arg
 
 /************************************************************
@@ -76,7 +76,10 @@ private:
   std::vector<Node *> neighbors;        // Nodes this node has a conection to
   std::vector<float> neighborDistances; // Distance to a given node relative
                                         // to neighbors array
-  int neighborCount;                    // Number of neighbor connectios to this node
+  int neighborCount;                    // Number of neighbor connections to this node
+  Node *next;
+  Node *previous;
+
 public:
   //
   // Constructors
@@ -102,6 +105,16 @@ public:
   int getNeighborCount() const
   {                             // Returns the number of neighbor connectios to this node
     return this->neighborCount; // Inlined to eliminate function call overhead
+  }
+
+  Node *getNext() const
+  {
+    return this->next;
+  }
+
+  Node *getPrevious() const
+  {
+    return this->previous;
   }
 };
 
@@ -130,7 +143,7 @@ class Graph
 private:
   int nodeCount;                                   // Stores the number of nodes in this graph
   std::vector<Node *> nodes;                       // Stores the nodes in this graph
-  std::vector<std::vector<float>> nodeConnections; // The matrix reprentation
+  std::vector<std::vector<float> > nodeConnections; // The matrix reprentation
                                                    // Of this graph
 
 public:
@@ -147,7 +160,7 @@ public:
   {
     return this->nodeCount;
   }
-  std::vector<std::vector<float>> getNodeConnections() const
+  std::vector<std::vector<float> > getNodeConnections() const
   {
     return this->nodeConnections;
   }
@@ -174,18 +187,18 @@ std::ostream &operator<<(std::ostream &os, const Graph *graph);
 class PriorityQueue
 {
 private:
-  Node* goalNode;
+  Node *goalNode;
   std::vector<Node *> nodes;
-  std::vector<float> heuristic;
+  std::vector<float> heuristics;
   int count;
 
 public:
-  PriorityQueue();
-  int insert(Node *node);
+  PriorityQueue(Node *goalNode);
+  int insert(Node *node, float pathLength);
   Node *pop();
   int removeNode(Node *node);
   int removeNode(int index);
   int getNodeIndex(Node *node);
-}
+};
 
 #endif /* end of include guard: AtlasGraphTools_h */

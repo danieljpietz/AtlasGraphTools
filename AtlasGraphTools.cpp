@@ -199,7 +199,7 @@ int Graph::addNode(Node *node)
     // no connection
     //
     int i;
-    for (i = 0; i < this->nodeConnections.size(); i++)
+    for (i = 0; i < (int)this->nodeConnections.size(); i++)
     {
         this->nodeConnections[i].resize(this->nodes.size(), 0);
     }
@@ -287,19 +287,112 @@ std::ostream &operator<<(std::ostream &os, const Graph *graph)
  ************************************************************
  ************************************************************/
 
-PriorityQueue::PriorityQueue(Node* goalNode) {
+PriorityQueue::PriorityQueue(Node *goalNode)
+{
     this->count = 0;
     this->goalNode = goalNode;
 }
 
 /***********************************************************
  ************************************************************
+ ** Function implementation for GetNodeIndex
+ ** Takes node to be indexed
+ ** Returns -1 if the node is not in the queue
+ ************************************************************
+ ************************************************************/
+
+int PriorityQueue::getNodeIndex(Node *node)
+{
+    if (node == (Node *)NULL) //Check for null input argument
+    {
+        return NULL_ARG;
+    }
+
+    int i;
+
+    for (i = 0; i < this->count; i++)
+    {
+        if (node == this->nodes[i])
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/***********************************************************
+ ************************************************************
  ** Function implementation for Insert
- ** Takes node to be added into queu
+ ** Takes node to be added into queue
  ** No Special Return Codes
  ************************************************************
  ************************************************************/
 
-PriorityQueue::insert(Node* node) {
+int PriorityQueue::insert(Node *node, float pathLength)
+{
+    if (node == (Node *)NULL) //Check for null input argument
+    {
+        return NULL_ARG;
+    }
 
+    //
+    //  Calculate the remaining distance to the goal node
+    //
+
+    float remainingDistance = getNodeDistance(node, this->goalNode);
+    float newHeuristic = pathLength + remainingDistance;
+
+    //
+    // Check and see if the node exists in the queue
+    //
+
+    int nodeIndex = this->getNodeIndex(node);
+
+    //
+    // This path is taken if the if the node is in the queue
+    //
+
+    if (nodeIndex != -1)
+    {
+        if (newHeuristic > this->heuristics[nodeIndex])
+        {
+            //
+            // Node has already been visited with a shorter path. No action necesary.
+            //
+
+            return 1;
+        }
+        else
+        {
+
+            //
+            // Node has already been visited with a longer path. Remove the node and before adding again
+            //
+
+            this->removeNode(nodeIndex);
+        }
+    }
+
+    int index;
+    int insertIndex = this->count;
+
+    for (index = 0; index < this->count; index++)
+    {
+        if (newHeuristic < heuristics[index])
+        {
+            insertIndex = index;
+            break;
+        }
+    }
+
+    for (; index < this->count; index++)
+    {
+        this->nodes[index + 1] = this->nodes[index];
+        this->heuristics[index + 1] = this->heuristics[index];
+    }
+
+    this->nodes[insertIndex] = node;
+    this->heuristics[insertIndex] = newHeuristic;
+    return 1;
 }
