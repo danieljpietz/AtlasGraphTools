@@ -32,6 +32,9 @@ Node::Node(Graph *parent, float x, float y)
     {
         parent->addNode(this);
     }
+    else {
+
+    }
 }
 
 /***********************************************************
@@ -191,7 +194,11 @@ int Graph::addNode(Node *node)
     //
     this->nodes.insert(this->nodes.end(), node);
 
+<<<<<<< HEAD
+    std::vector<double> newRow(this->nodes.size(), 0);
+=======
     std::vector<float> newRow(this->nodes.size(), -1);
+>>>>>>> 9b47e5d961e9449304c115c4a6b717f0c982eed5
 
     this->nodeConnections.insert(this->nodeConnections.end(), newRow);
     //
