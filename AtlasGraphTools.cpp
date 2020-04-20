@@ -46,6 +46,7 @@ Node::Node(Graph *parent, float x, float y)
  ** Argument is the node to be added and distance to neightbor
  ** Special Return Codes:
  **       -1: Indicates Nodes had different parent Graphs
+ **       -2: Indicated nodes are already neighbors
  ************************************************************
  ************************************************************/
 
@@ -55,10 +56,28 @@ int Node::addNeighbor(Node *neighbor)
     {
         return NULL_ARG;
     }
+
+//
+// This dependency has been removed, Processing will be purely linked list for speed
+//
+
+#if 0
     if (this->parent != neighbor->parent || this->parent == (Graph *)NULL)
     {
         return -1;
     }
+#endif
+    //
+    // Check if the nodes are already neighbors
+    //
+
+    int i;
+    for (i = 0; i < this->neighbors.size(); i++) {
+        if (this->neighbors[i] == neighbor) {
+            return -2;
+        }
+    }
+
     //
     //Calculate the distance between Nodes
     // No need to check return code on distance as
@@ -80,8 +99,10 @@ int Node::addNeighbor(Node *neighbor)
     //
     // update the parent graph reflect the new connection
     //
-
+    return SUCCESS;
+#if 0
     return this->parent->updateConnections();
+#endif
 }
 
 /***********************************************************
@@ -99,6 +120,7 @@ float getNodeDistance(Node *node1, Node *node2)
     {
         return NULL_ARG;
     }
+
     return sqrt((node1->getLocation().x - node2->getLocation().x) *
                     (node1->getLocation().x - node2->getLocation().x) +
                 (node1->getLocation().y - node2->getLocation().y) *
