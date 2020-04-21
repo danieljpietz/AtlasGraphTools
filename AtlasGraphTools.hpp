@@ -42,9 +42,10 @@ typedef struct
  ************************************************************
  ************************************************************/
 
-#define SUCCESS 1     // Indicates function executed succesfully
-#define NULL_ARG -127 // Indicates a null pointer was passed
+#define SUCCESS (1)     // Indicates function executed succesfully
+#define NULL_ARG (-127) // Indicates a null pointer was passed
                       // as a function arg
+#define OUT_OF_BOUNDS (-255) // Indicates out of bounds indexing
 
 /************************************************************
  ************************************************************
@@ -52,7 +53,6 @@ typedef struct
  ************************************************************
  ************************************************************/
 
-class Graph;
 class Node;
 class PriorityQueue;
 
@@ -66,17 +66,11 @@ class PriorityQueue;
  ************************************************************
  ************************************************************/
 
-class Node
-{
-  friend class Graph;
-
+class Node  {
 private:
   point_t location;                     // Specifies the physical location of this node
-  Graph *parent;                        // Specifies the parent graph this node is a part of.
   unsigned int nodeID;                  // Specifies the index of this node in its parent graph
-  std::vector<Node *> neighbors;        // Nodes this node has a conection to
-  std::vector<float> neighborDistances; // Distance to a given node relative
-                                        // to neighbors array
+  PriorityQueue *neighbors;        // Nodes this node has a conection to
   int neighborCount;                    // Number of neighbor connections to this node
   Node *next;
   Node *previous;
@@ -85,8 +79,7 @@ public:
   //
   // Constructors
   //
-  Node(float x, float y);                //Default Constructor for node with no graph
-  Node(Graph *parent, float x, float y); //Constructor for node with a graph
+  Node(float x, float y);                //Default Constructor for node
   //
   // Member Functions
   //
@@ -98,7 +91,7 @@ public:
     return this->location; // Inlined to eliminate function call overhead
   }
 
-  std::vector<Node *> getNeighbors() const
+  PriorityQueue* getNeighbors() const
   {                         // Returns the neighbors of the node
     return this->neighbors; // Inlined to eliminate function call overhead
   }
@@ -125,57 +118,7 @@ public:
  ************************************************************
  ************************************************************/
 
-std::ostream &operator<<(std::ostream &os, const Node &node);
-std::ostream &operator<<(std::ostream &os, const Node *node);
 float getNodeDistance(Node *node1, Node *node2);
-
-
-/************************************************************
- ************************************************************
- ** Graph Class Definition
- ** This class is used to store nodes in Graphs
- ** Key data include the nodes physical location
- ** in cartesian space
- ** Has access to private members of Node class
- ************************************************************
- ************************************************************/
-
-class Graph
-{
-private:
-  int nodeCount;                                   // Stores the number of nodes in this graph
-  std::vector<Node *> nodes;                       // Stores the nodes in this graph
-  std::vector<std::vector<float> > nodeConnections; // The matrix reprentation
-                                                   // Of this graph
-
-public:
-  //
-  // Constructors
-  //
-  Graph(); // Default Constructor
-  //
-  // Member Functions
-  //
-  int addNode(Node *node); // Adds a node to the graph and updates matrix
-  int updateConnections(); // Updates matrix reprentation for new connections
-  int getNodeCount() const
-  {
-    return this->nodeCount;
-  }
-  std::vector<std::vector<float> > getNodeConnections() const
-  {
-    return this->nodeConnections;
-  }
-};
-
-/************************************************************
- ************************************************************
- ** Nonmember functions for Graph Class
- ************************************************************
- ************************************************************/
-
-std::ostream &operator<<(std::ostream &os, const Graph &graph);
-std::ostream &operator<<(std::ostream &os, const Graph *graph);
 
 /************************************************************
  ************************************************************
@@ -201,6 +144,11 @@ public:
   int removeNode(Node *node);
   int removeNode(int index);
   int getNodeIndex(Node *node);
+  Node* getNodeAtIndex(int index) const;
+  float getHeuristicAtIndex(int index) const;
+    int getNodeCount() const {
+        return this->count;
+    }
 };
 
 #endif /* end of include guard: AtlasGraphTools_h */
