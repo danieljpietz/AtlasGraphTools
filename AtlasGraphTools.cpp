@@ -204,12 +204,7 @@ int PriorityQueue::insert(Node *node, float pathLength)
         }
         else
         {
-
-            //
-            // Node has already been visited with a longer path. Remove the node and before adding again
-            //
-
-            //this->removeNode(nodeIndex);
+            this->removeNode(nodeIndex);
         }
     }
 
@@ -238,4 +233,59 @@ int PriorityQueue::insert(Node *node, float pathLength)
     this->heuristics[insertIndex] = newHeuristic;
     this->count++;
     return SUCCESS;
+}
+
+/***********************************************************
+************************************************************
+** Function implementation for Remove of a PriorityQueue
+** Takes idex of node to be removed
+** No speical return codes
+************************************************************
+************************************************************/
+
+int PriorityQueue::removeNode(int index) {
+    if (index >= count) {
+        return OUT_OF_BOUNDS;
+    }
+    for (; index + 1 < count; index++) {
+        this->nodes[index] = this->nodes[index+1];
+        this->heuristics[index] = this->heuristics[index+1];
+    }
+    this->count--;
+    return SUCCESS;
+}
+
+/***********************************************************
+************************************************************
+** Function implementation for Remove of a PriorityQueue
+** Takes the node to be removed
+** Returns -1 if the node is not in the array
+************************************************************
+************************************************************/
+
+int PriorityQueue::removeNode(Node* node) {
+    if (node == (Node*) NULL) {
+        return NULL_ARG;
+    }
+    int index = this->getNodeIndex(node);
+    if (index == -1) {
+        return -1;
+    }
+    return this->removeNode(index);
+}
+
+/***********************************************************
+************************************************************
+** Function implementation for Pop of a PriorityQueue
+**  Returns the node at the end of the queue
+************************************************************
+************************************************************/
+
+Node* PriorityQueue::pop() {
+    if (this->count == 0) {
+        return (Node*)OUT_OF_BOUNDS;
+    }
+    Node* retNode = this->getNodeAtIndex(this->count-1);
+    this->count--;
+    return retNode;
 }

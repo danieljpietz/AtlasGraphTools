@@ -146,6 +146,9 @@ public:
   int getNodeIndex(Node *node);
   Node* getNodeAtIndex(int index) const;
   float getHeuristicAtIndex(int index) const;
+    int getNodeCount() const {
+        return this->count;
+    }
 };
 
 #endif /* end of include guard: AtlasGraphTools_h */

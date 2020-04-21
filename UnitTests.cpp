@@ -142,6 +142,7 @@ int main(int argc, char const* argv[]) {
         queueNodes[i] = new Node(x1,y1);
         rc = queue->insert(queueNodes[i], static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(200))));
         assert(rc == SUCCESS);
+        assert(queue->getNodeCount() == i+1);
     }
     std::cout << "Test Passed" << std::endl;
     //
@@ -191,6 +192,46 @@ int main(int argc, char const* argv[]) {
     rc = queue->insert(queueNodes[0], -getNodeDistance(queueNodes[0], goalNode) - 1);
     assert(rc == SUCCESS);
     std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning queue insert nullarg test: ";
+    rc = queue->removeNode((Node*)0x0);
+    assert(rc == NULL_ARG);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning queue remove OUT_OF_BOUNDS test: ";
+    rc = queue->removeNode(queueSize + 1);
+    assert(rc == OUT_OF_BOUNDS);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning queue false remove test: ";
+    Node *nodeNotInQueue = new Node(0,0);
+    rc = queue->removeNode(nodeNotInQueue);
+    assert(rc == -1);
+    std::cout << "Test Passed" << std::endl;
+
+
+    std::cout << "Beginning queue remove test: ";
+    Node* nodeToRemove = queue->getNodeAtIndex(0);
+    int previousCount = queue->getNodeCount();
+    rc = queue->removeNode(nodeToRemove);
+    assert(rc == SUCCESS);
+    assert(queue->getNodeCount() == previousCount - 1);
+    rc = queue->insert(nodeToRemove, -getNodeDistance(nodeToRemove, goalNode) - 1);
+    assert(rc == SUCCESS);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning queue pop test: ";
+    previousCount = queue->getNodeCount();
+    Node* lastNode = queue->getNodeAtIndex(previousCount-1);
+    Node* poppedNode = queue->pop();
+    assert(lastNode == poppedNode);
+    assert(queue->getNodeCount() == previousCount-1);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning empty queue pop test: ";
+    PriorityQueue *emptyQueue = new PriorityQueue(goalNode);
+    poppedNode = emptyQueue->pop();
+    assert(poppedNode == (Node*)OUT_OF_BOUNDS);
 
     return 0;
 }
