@@ -70,9 +70,7 @@ class Node  {
 private:
   point_t location;                     // Specifies the physical location of this node
   unsigned int nodeID;                  // Specifies the index of this node in its parent graph
-  std::vector<Node *> neighbors;        // Nodes this node has a conection to
-  std::vector<float> neighborDistances; // Distance to a given node relative
-                                        // to neighbors array
+  PriorityQueue *neighbors;        // Nodes this node has a conection to
   int neighborCount;                    // Number of neighbor connections to this node
   Node *next;
   Node *previous;
@@ -93,7 +91,7 @@ public:
     return this->location; // Inlined to eliminate function call overhead
   }
 
-  std::vector<Node *> getNeighbors() const
+  PriorityQueue* getNeighbors() const
   {                         // Returns the neighbors of the node
     return this->neighbors; // Inlined to eliminate function call overhead
   }

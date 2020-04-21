@@ -13,6 +13,7 @@ Node::Node(float x, float y)
     this->location.x = x;
     this->location.y = y;
     this->neighborCount = 0;
+    this->neighbors = new PriorityQueue(this);
 }
 
 
@@ -24,7 +25,6 @@ Node::Node(float x, float y)
  ** Only Parent Graph will be updated
  ** Argument is the node to be added and distance to neightbor
  ** Special Return Codes:
- **       -1: Indicates Nodes had different parent Graphs
  **       -2: Indicated nodes are already neighbors
  ************************************************************
  ************************************************************/
@@ -36,36 +36,14 @@ int Node::addNeighbor(Node *neighbor)
         return NULL_ARG;
     }
 
-    //
-    // Check if the nodes are already neighbors
-    //
-
-    int i;
-    for (i = 0; i < this->neighbors.size(); i++) {
-        if (this->neighbors[i] == neighbor) {
-            return -2;
-        }
+    if (this->isNeighbor(neighbor)) {
+        return -2;
     }
 
-    //
-    //Calculate the distance between Nodes
-    // No need to check return code on distance as
-    // this and neighbor are known to be not null
-    // At this point
-    //
-    float distance = getNodeDistance(this, neighbor);
-    //
-    // Add node and distance to respective vectors
-    //
-    this->neighbors.insert(this->neighbors.end(), neighbor);
-    this->neighborDistances.insert(this->neighborDistances.end(), distance);
-    this->neighborCount++;
+    int rc1 = this->neighbors->insert(neighbor, 0);
+    int rc2 = neighbor->neighbors->insert(this, 0);
 
-    neighbor->neighbors.insert(neighbor->neighbors.end(), this);
-    neighbor->neighborDistances.insert(neighbor->neighborDistances.end(), distance);
-    neighbor->neighborCount++;
-
-    return SUCCESS;
+    return (rc1 & rc2);
 
 }
 
@@ -107,15 +85,7 @@ int Node::isNeighbor(Node *node)
     {
         return NULL_ARG;
     }
-    int i;
-    for (i = 0; i < (int)this->neighbors.size(); i++)
-    {
-        if (node == this->neighbors[i])
-        {
-            return 1;
-        }
-    }
-    return 0;
+    return (this->neighbors->getNodeIndex(node) != -1);
 }
 
 /***********************************************************
