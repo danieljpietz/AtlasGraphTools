@@ -1,0 +1,425 @@
+        -:    0:Source:Atlas/AtlasGraphTools.cpp
+        -:    0:Graph:AtlasGraphTools.gcno
+        -:    0:Data:AtlasGraphTools.gcda
+        -:    0:Runs:1
+        -:    0:Programs:1
+        -:    1:#include "AtlasGraphTools.hpp"
+        -:    2:
+        -:    3:/***********************************************************
+        -:    4: ************************************************************
+        -:    5: ** Constructor for Node Type without parent graph.
+        -:    6: ** Arguments are x and y position of node in cartesian space
+        -:    7: ************************************************************
+        -:    8: ************************************************************/
+        -:    9:
+ 40000060:   10:Node::Node(float x, float y)
+ 20000030:   11:{
+ 20000030:   12:    this->nodeID = -1;
+ 20000030:   13:    this->location.x = x;
+ 20000030:   14:    this->location.y = y;
+ 20000030:   15:    this->neighborCount = 0;
+ 20000030:   16:    this->neighbors = new PriorityQueue(this);
+ 20000030:   17:    this->pathLength = INFINITY;
+ 20000030:   18:    this->neighborsHeuristic = (PriorityQueue*)NULL;
+ 40000060:   19:}
+        -:   20:
+        -:   21:
+        -:   22:/***********************************************************
+        -:   23: ************************************************************
+        -:   24: ** Function to add a neighbor to a node
+        -:   25: ** A neighbor is defined as a node that
+        -:   26: ** can be reached from this node
+        -:   27: ** Argument is the node to be added and distance to neightbor
+        -:   28: ** Special Return Codes:
+        -:   29: **       -2: Indicated nodes are already neighbors
+        -:   30: ************************************************************
+        -:   31: ************************************************************/
+        -:   32:
+       43:   33:int Node::addNeighbor(Node *neighbor)
+        -:   34:{
+       43:   35:    if (neighbor == (Node *)NULL)
+        -:   36:    {
+        1:   37:        return NULL_ARG;
+        -:   38:    }
+        -:   39:
+       42:   40:    if (this->isNeighbor(neighbor)) {
+        3:   41:        return -2;
+        -:   42:    }
+        -:   43:
+       39:   44:    int rc1 = this->neighbors->insert(neighbor, 0);
+       39:   45:    int rc2 = neighbor->neighbors->insert(this, 0);
+       39:   46:    this->neighborCount++;
+       39:   47:    neighbor->neighborCount++;
+        -:   48:
+       39:   49:    return SUCCESS;
+        -:   50:
+       43:   51:}
+        -:   52:
+        -:   53:/***********************************************************
+        -:   54:************************************************************
+        -:   55:** Function to get neighbor nodes sorted by
+        -:   56:** the worst next node first
+        -:   57:** A neighbor is defined as a node that
+        -:   58:** can be reached from this node
+        -:   59:** Argument is the goal node to be reached
+        -:   60:** No Special Return Coddes
+        -:   61:************************************************************
+        -:   62:************************************************************/
+        -:   63:
+       12:   64:PriorityQueue* Node::getNeighbors(Node* goalNode) {
+       12:   65:    if (goalNode == (Node*)NULL) {
+        1:   66:        return (PriorityQueue*)NULL_ARG;
+        -:   67:    }
+       11:   68:    PriorityQueue *queue = new PriorityQueue(goalNode);
+        -:   69:    int i;
+       29:   70:    for (i = 0; i < this->getNeighborCount(); i++) {
+        -:   71:
+       18:   72:        queue->insert(this->neighbors->getNodeAtIndex(i), this->pathLength + getNodeDistance(this, this->neighbors->getNodeAtIndex(i)));
+       18:   73:    }
+       11:   74:    return queue;
+        -:   75:
+       12:   76:}
+        -:   77:
+        -:   78:/***********************************************************
+        -:   79:************************************************************
+        -:   80:** Function to reset the neighbor hueristic queue
+        -:   81:** No Special Return Codes
+        -:   82:************************************************************
+        -:   83:************************************************************/
+        -:   84:
+       11:   85:int Node::resetNeighbors() {
+       11:   86:    this->neighborsHeuristic = (PriorityQueue*)NULL;
+       11:   87:    return SUCCESS;
+        -:   88:
+        -:   89:}
+        -:   90:
+        -:   91:
+        -:   92:/***********************************************************
+        -:   93: ************************************************************
+        -:   94: ** Function to get the distance between two nodes
+        -:   95: ** Argument is two node pointers
+        -:   96: ** inlined to reduce function call overhead
+        -:   97: ** Special Return Codes: None
+        -:   98: ************************************************************
+        -:   99: ************************************************************/
+        -:  100:
+ 10000226:  101:float getNodeDistance(Node *node1, Node *node2)
+        -:  102:{
+ 10000226:  103:    if (node1 == (Node *)NULL || node2 == (Node *)NULL)
+        -:  104:    {
+        3:  105:        return NULL_ARG;
+        -:  106:    }
+        -:  107:
+ 30000669:  108:    return sqrt((node1->getLocation().x - node2->getLocation().x) *
+ 20000446:  109:                    (node1->getLocation().x - node2->getLocation().x) +
+ 20000446:  110:                (node1->getLocation().y - node2->getLocation().y) *
+ 10000223:  111:                    (node1->getLocation().y - node2->getLocation().y));
+ 10000226:  112:}
+        -:  113:
+        -:  114:/***********************************************************
+        -:  115: ************************************************************
+        -:  116: ** Function to check if a node neighbors another node
+        -:  117: ** A neighbor is defined as a node that
+        -:  118: ** can be reached from this node
+        -:  119: ** Argument is potential neighbor
+        -:  120: ** Special Return Codes: None
+        -:  121: ************************************************************
+        -:  122: ************************************************************/
+        -:  123:
+       49:  124:int Node::isNeighbor(Node *node)
+        -:  125:{
+       49:  126:    if (node == (Node *)NULL)
+        -:  127:    {
+        1:  128:        return NULL_ARG;
+        -:  129:    }
+       48:  130:    return (this->neighbors->getNodeIndex(node) != -1);
+       49:  131:}
+        -:  132:
+        -:  133:/***********************************************************
+        -:  134: ************************************************************
+        -:  135: ** Constructor for PriorityQueue Type
+        -:  136: ** Arguments is the goal node to be reached in this queue
+        -:  137: ************************************************************
+        -:  138: ************************************************************/
+        -:  139:
+ 40000094:  140:PriorityQueue::PriorityQueue(Node *goalNode) {
+ 20000047:  141:    this->goalNode = goalNode;
+ 20000047:  142:    this->count = 0;
+ 40000094:  143:}
+        -:  144:
+        -:  145:/***********************************************************
+        -:  146: ************************************************************
+        -:  147: ** Function implementation for GetNodeIndex
+        -:  148: ** Takes node to be indexed
+        -:  149: ** Returns -1 if the node is not in the queue
+        -:  150: ************************************************************
+        -:  151: ************************************************************/
+        -:  152:
+      236:  153:int PriorityQueue::getNodeIndex(Node *node)
+        -:  154:{
+      236:  155:    if (node == (Node *)NULL) //Check for null input argument
+        -:  156:    {
+        1:  157:        return NULL_ARG;
+        -:  158:    }
+        -:  159:
+        -:  160:    int i;
+        -:  161:
+      766:  162:    for (i = 0; i < this->count; i++)
+        -:  163:    {
+      572:  164:        if (node == this->nodes[i])
+        -:  165:        {
+       41:  166:            return i;
+        -:  167:        }
+      531:  168:    }
+        -:  169:
+      194:  170:    return -1;
+      236:  171:}
+        -:  172:
+        -:  173:/***********************************************************
+        -:  174: ************************************************************
+        -:  175: ** Function implementation for GetNodeAtIndex
+        -:  176: ** Takes the node index
+        -:  177: ** No special return codes
+        -:  178: ************************************************************
+        -:  179: ************************************************************/
+        -:  180:
+      102:  181:Node* PriorityQueue::getNodeAtIndex(int index) const {
+      102:  182:   if(index < this->count)
+      101:  183:   return this->nodes[index];
+        -:  184:   else {
+        1:  185:       return (Node*)OUT_OF_BOUNDS;
+        -:  186:   }
+      102:  187:}
+        -:  188:
+        -:  189:/***********************************************************
+        -:  190: ************************************************************
+        -:  191: ** Function implementation for getHeuristicAtIndex
+        -:  192: ** Takes the index
+        -:  193: ** No special return codes
+        -:  194: ************************************************************
+        -:  195: ************************************************************/
+        -:  196:
+      143:  197:float PriorityQueue::getHeuristicAtIndex(int index) const {
+      143:  198:   if(index < this->count)
+      142:  199:   return this->heuristics[index];
+        -:  200:   else {
+        1:  201:       return OUT_OF_BOUNDS;
+        -:  202:   }
+      143:  203:}
+        -:  204:
+        -:  205:/***********************************************************
+        -:  206: ************************************************************
+        -:  207: ** Function implementation for Insert
+        -:  208: ** Takes node to be added into queue
+        -:  209: ** Returns -2 if the node is already in the queue in a better path
+        -:  210: ************************************************************
+        -:  211: ************************************************************/
+        -:  212:
+      169:  213:int PriorityQueue::insert(Node *node, float pathLength)
+        -:  214:{
+      169:  215:    if (node == (Node *)NULL) //Check for null input argument
+        -:  216:    {
+        1:  217:        return NULL_ARG;
+        -:  218:    }
+        -:  219:
+        -:  220:    //
+        -:  221:    //  Calculate the remaining distance to the goal node
+        -:  222:    //
+        -:  223:
+      168:  224:    float remainingDistance = getNodeDistance(node, this->goalNode);
+      168:  225:    float newHeuristic = (SHORTEST_PATH_BIAS * pathLength) + (CLOSEST_NODE_BIAS * remainingDistance);
+        -:  226:
+        -:  227:    //
+        -:  228:    // Check and see if the node exists in the queue
+        -:  229:    //
+        -:  230:
+      168:  231:    int nodeIndex = this->getNodeIndex(node);
+        -:  232:
+        -:  233:    //
+        -:  234:    // This path is taken if the if the node is in the queue
+        -:  235:    //
+        -:  236:
+      168:  237:    if (nodeIndex != -1)
+        -:  238:    {
+       18:  239:        if (newHeuristic > this->heuristics[nodeIndex])
+        -:  240:        {
+        -:  241:            //
+        -:  242:            // Node has already been visited with a shorter path. No action necesary.
+        -:  243:            //
+        -:  244:
+        4:  245:            return -2;
+        -:  246:        }
+        -:  247:        else
+        -:  248:        {
+       14:  249:            this->removeNode(nodeIndex);
+        -:  250:        }
+       14:  251:    }
+        -:  252:
+        -:  253:    int index;
+      164:  254:    int insertIndex = this->count;
+        -:  255:
+      164:  256:    this->nodes.resize(this->count+1);
+      164:  257:    this->heuristics.resize(this->count+1);
+        -:  258:
+      373:  259:    for (index = 0; index < this->count; index++)
+        -:  260:    {
+      300:  261:        if (newHeuristic > heuristics[index])
+        -:  262:        {
+       91:  263:            insertIndex = index;
+       91:  264:            break;
+        -:  265:        }
+      209:  266:    }
+        -:  267:
+      367:  268:    for (index = this->count - 1; index >= insertIndex; index--)
+        -:  269:    {
+      203:  270:        this->nodes[index + 1] = this->nodes[index];
+      203:  271:        this->heuristics[index + 1] = this->heuristics[index];
+      203:  272:    }
+        -:  273:
+      164:  274:    this->nodes[insertIndex] = node;
+      164:  275:    this->heuristics[insertIndex] = newHeuristic;
+      164:  276:    this->count++;
+      164:  277:    return SUCCESS;
+      169:  278:}
+        -:  279:
+        -:  280:/***********************************************************
+        -:  281:************************************************************
+        -:  282:** Function implementation for Remove of a PriorityQueue
+        -:  283:** Takes idex of node to be removed
+        -:  284:** No speical return codes
+        -:  285:************************************************************
+        -:  286:************************************************************/
+        -:  287:
+       33:  288:int PriorityQueue::removeNode(int index) {
+       33:  289:    if (index >= count) {
+        1:  290:        return OUT_OF_BOUNDS;
+        -:  291:    }
+       72:  292:    for (; index + 1 < count; index++) {
+       40:  293:        this->nodes[index] = this->nodes[index+1];
+       40:  294:        this->heuristics[index] = this->heuristics[index+1];
+       40:  295:    }
+       32:  296:    this->count--;
+       32:  297:    return SUCCESS;
+       33:  298:}
+        -:  299:
+        -:  300:/***********************************************************
+        -:  301:************************************************************
+        -:  302:** Function implementation for Remove of a PriorityQueue
+        -:  303:** Takes the node to be removed
+        -:  304:** Returns -1 if the node is not in the array
+        -:  305:************************************************************
+        -:  306:************************************************************/
+        -:  307:
+       20:  308:int PriorityQueue::removeNode(Node* node) {
+       20:  309:    if (node == (Node*) NULL) {
+        1:  310:        return NULL_ARG;
+        -:  311:    }
+       19:  312:    int index = this->getNodeIndex(node);
+       19:  313:    if (index == -1) {
+        1:  314:        return -1;
+        -:  315:    }
+       18:  316:    return this->removeNode(index);
+       20:  317:}
+        -:  318:
+        -:  319:/***********************************************************
+        -:  320:************************************************************
+        -:  321:** Function implementation for GetMin of a PriorityQueue
+        -:  322:**  Returns the node at the end of the queue
+        -:  323:************************************************************
+        -:  324:************************************************************/
+        -:  325:
+       52:  326:Node* PriorityQueue::getMin() {
+       52:  327:    if (this->count == 0) {
+        1:  328:        return (Node*)OUT_OF_BOUNDS;
+        -:  329:    }
+       51:  330:    return this->getNodeAtIndex(this->count-1);;
+       52:  331:}
+        -:  332:
+        -:  333:/***********************************************************
+        -:  334:************************************************************
+        -:  335:** Function implementation for Pop of a PriorityQueue
+        -:  336:**  Returns the node at the end of the queue
+        -:  337:************************************************************
+        -:  338:************************************************************/
+        -:  339:
+       20:  340:Node* PriorityQueue::pop() {
+       20:  341:    if (this->count == 0) {
+        1:  342:        return (Node*)OUT_OF_BOUNDS;
+        -:  343:    }
+       19:  344:    Node* retNode = this->getMin();
+       19:  345:    this->count--;
+       19:  346:    return retNode;
+       20:  347:}
+        -:  348:
+        -:  349:/***********************************************************
+        -:  350:************************************************************
+        -:  351:** Function implementation for AStar
+        -:  352:**  Arguments are starting node and path queue
+        -:  353:** Returns a -1 if a path does not exist between nodes
+        -:  354:************************************************************
+        -:  355:************************************************************/
+        -:  356:
+        5:  357:int AStar(Node* startNode, Node* goalNode) {
+        5:  358:    if (startNode == (Node*)NULL || goalNode == (Node*)NULL) {
+        3:  359:        return NULL_ARG;
+        -:  360:    }
+        2:  361:    PriorityQueue *queue = new PriorityQueue(goalNode);
+        2:  362:    startNode->pathLength = 0;
+        2:  363:    queue->insert(startNode, 0);
+        2:  364:    PriorityQueue *deadNodes = new PriorityQueue(startNode);
+        -:  365:    float rc;
+        -:  366:    int i, deadPath;
+        2:  367:    deadPath = 0;
+       34:  368:    while (deadPath == 0) {
+      116:  369:        for (i = 0; i < queue->getNodeCount(); i++) {
+      114:  370:            if (queue->getHeuristicAtIndex(i) != INFINITY) {
+       32:  371:                deadPath = 0;
+       32:  372:                break;
+        -:  373:            }
+        -:  374:            else {
+        -:  375:
+       82:  376:                deadPath = 1;
+        -:  377:            }
+       82:  378:        }
+       34:  379:        if (deadPath == 1) {
+        2:  380:            break;
+        -:  381:        }
+       32:  382:        Node* currentNode = queue->getMin();
+       32:  383:        if (currentNode->neighborsHeuristic == (PriorityQueue*)NULL) {
+       11:  384:            currentNode->neighborsHeuristic = currentNode->getNeighbors(goalNode);
+       11:  385:        }
+       32:  386:        if (currentNode->neighborsHeuristic->getNodeCount() == 0) {
+       14:  387:            deadNodes->insert(currentNode, 0);
+       14:  388:            queue->removeNode(currentNode);
+       14:  389:            currentNode->pathLength = INFINITY;
+       14:  390:            queue->insert(currentNode, INFINITY);
+       14:  391:            continue;
+        -:  392:        }
+        -:  393:
+       18:  394:        Node* nextNode = currentNode->neighborsHeuristic->pop();
+        -:  395:
+       18:  396:        rc = queue->insert(nextNode, currentNode->pathLength + getNodeDistance(currentNode, nextNode));
+       18:  397:        if (rc == -2) {
+        3:  398:            deadNodes->insert(currentNode, 0);
+        3:  399:            queue->removeNode(currentNode);
+        3:  400:            currentNode->pathLength = INFINITY;
+        3:  401:            queue->insert(currentNode, INFINITY);
+        3:  402:        }
+       15:  403:        else if (rc == SUCCESS) {
+       15:  404:            nextNode->pathLength = currentNode->pathLength + getNodeDistance(currentNode, nextNode);
+       15:  405:            nextNode->previous = currentNode;
+       15:  406:        }
+        -:  407:
+        -:  408:    }
+        -:  409:
+       13:  410:    for (i = 0; i < queue->getNodeCount(); i++) {
+       11:  411:        queue->getNodeAtIndex(i)->resetNeighbors();
+       11:  412:    }
+        -:  413:
+        2:  414:    if (goalNode->previous != (Node*)NULL) {
+        -:  415:
+        1:  416:        return SUCCESS;
+        -:  417:    }
+        -:  418:
+        1:  419:    return -1;
+        5:  420:}

@@ -36,10 +36,13 @@ int main(int argc, char const* argv[]) {
     assert(rc == 0);
     rc = nodeN1->addNeighbor(nodeN2); // Add neighbor
     assert(rc == SUCCESS);
+    assert(nodeN1->getNeighborCount() == 1);
+    assert(nodeN1->getNeighborCount() == nodeN2->getNeighborCount());
     rc = nodeN1->isNeighbor(nodeN3); // Show that the nodes are not neighbors
     assert(rc == 0);
     rc = nodeN1->addNeighbor(nodeN3); // Add neighbor
     assert(rc == SUCCESS);
+    assert(nodeN1->getNeighborCount() == 2);
     rc = nodeN1->addNeighbor(0x0); // Add a null neighbor
     assert(rc == NULL_ARG);
     rc = nodeN2->isNeighbor(nodeN1); // Show that the nodes are neighbors
@@ -50,6 +53,8 @@ int main(int argc, char const* argv[]) {
     assert(rc == -2);
     rc = nodeN2->addNeighbor(nodeN1); // Show protection against double adding
     assert(rc == -2);
+    PriorityQueue *nullargqueue = nodeN2->getNeighbors(0x0); // Show protection against double adding
+    assert(nullargqueue == (PriorityQueue*) NULL_ARG);
     std::cout << "Test Passed" << std::endl;
 
     std::cout << "Beginning node connection nullarg test: ";
@@ -228,10 +233,46 @@ int main(int argc, char const* argv[]) {
     assert(queue->getNodeCount() == previousCount-1);
     std::cout << "Test Passed" << std::endl;
 
-    std::cout << "Beginning empty queue pop test: ";
-    PriorityQueue *emptyQueue = new PriorityQueue(goalNode);
-    poppedNode = emptyQueue->pop();
-    assert(poppedNode == (Node*)OUT_OF_BOUNDS);
+    std::cout << "Beginning queue empty pop test: ";
+    PriorityQueue *emptyQueue = new PriorityQueue(poppedNode);
+    Node* poppedNode2 = emptyQueue->pop();
+    assert(poppedNode2 == (Node*)OUT_OF_BOUNDS);
+    Node* minNode = emptyQueue->getMin();
+    assert(minNode == (Node*)OUT_OF_BOUNDS);
+    std::cout << "Test Passed" << std::endl;
 
+    std::cout << "Beginning Tests for A* Algorithm:" << std::endl;
+
+    Node *startNode = new Node(0,0);
+    Node *node1 = new Node(1,0);
+    Node *node2 = new Node(1,1);
+    Node *node3 = new Node(1,2.5);
+    Node *node4 = new Node(3,1);
+    goalNode = new Node(2,0);
+
+    startNode->addNeighbor(node1);
+    node1->addNeighbor(node2);
+    node2->addNeighbor(node3);
+    node3->addNeighbor(node4);
+
+    std::cout << "Beginning A* nullarg tests:" << std::endl;
+    rc = AStar(0x0, goalNode);
+    assert(rc == NULL_ARG);
+    rc = AStar(startNode, 0x0);
+    assert(rc == NULL_ARG);
+    rc = AStar(0x0, 0x0);
+    assert(rc == NULL_ARG);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning no path negative test: ";
+    rc = AStar(startNode, goalNode);
+    assert(rc == -1);
+    std::cout << "Test Passed" << std::endl;
+
+    std::cout << "Beginning existing path positive test: ";
+    node2->addNeighbor(goalNode);
+    rc = AStar(startNode, goalNode);
+    assert(rc == SUCCESS);
+    std::cout << "Test Passed" << std::endl;
     return 0;
 }

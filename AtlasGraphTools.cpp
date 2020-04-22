@@ -14,6 +14,8 @@ Node::Node(float x, float y)
     this->location.y = y;
     this->neighborCount = 0;
     this->neighbors = new PriorityQueue(this);
+    this->pathLength = INFINITY;
+    this->neighborsHeuristic = (PriorityQueue*)NULL;
 }
 
 
@@ -22,7 +24,6 @@ Node::Node(float x, float y)
  ** Function to add a neighbor to a node
  ** A neighbor is defined as a node that
  ** can be reached from this node
- ** Only Parent Graph will be updated
  ** Argument is the node to be added and distance to neightbor
  ** Special Return Codes:
  **       -2: Indicated nodes are already neighbors
@@ -42,10 +43,51 @@ int Node::addNeighbor(Node *neighbor)
 
     int rc1 = this->neighbors->insert(neighbor, 0);
     int rc2 = neighbor->neighbors->insert(this, 0);
+    this->neighborCount++;
+    neighbor->neighborCount++;
 
-    return (rc1 & rc2);
+    return SUCCESS;
 
 }
+
+/***********************************************************
+************************************************************
+** Function to get neighbor nodes sorted by
+** the worst next node first
+** A neighbor is defined as a node that
+** can be reached from this node
+** Argument is the goal node to be reached
+** No Special Return Coddes
+************************************************************
+************************************************************/
+
+PriorityQueue* Node::getNeighbors(Node* goalNode) {
+    if (goalNode == (Node*)NULL) {
+        return (PriorityQueue*)NULL_ARG;
+    }
+    PriorityQueue *queue = new PriorityQueue(goalNode);
+    int i;
+    for (i = 0; i < this->getNeighborCount(); i++) {
+
+        queue->insert(this->neighbors->getNodeAtIndex(i), this->pathLength + getNodeDistance(this, this->neighbors->getNodeAtIndex(i)));
+    }
+    return queue;
+
+}
+
+/***********************************************************
+************************************************************
+** Function to reset the neighbor hueristic queue
+** No Special Return Codes
+************************************************************
+************************************************************/
+
+int Node::resetNeighbors() {
+    this->neighborsHeuristic = (PriorityQueue*)NULL;
+    return SUCCESS;
+
+}
+
 
 /***********************************************************
  ************************************************************
@@ -180,7 +222,7 @@ int PriorityQueue::insert(Node *node, float pathLength)
     //
 
     float remainingDistance = getNodeDistance(node, this->goalNode);
-    float newHeuristic = pathLength + remainingDistance;
+    float newHeuristic = (SHORTEST_PATH_BIAS * pathLength) + (CLOSEST_NODE_BIAS * remainingDistance);
 
     //
     // Check and see if the node exists in the queue
@@ -276,6 +318,20 @@ int PriorityQueue::removeNode(Node* node) {
 
 /***********************************************************
 ************************************************************
+** Function implementation for GetMin of a PriorityQueue
+**  Returns the node at the end of the queue
+************************************************************
+************************************************************/
+
+Node* PriorityQueue::getMin() {
+    if (this->count == 0) {
+        return (Node*)OUT_OF_BOUNDS;
+    }
+    return this->getNodeAtIndex(this->count-1);;
+}
+
+/***********************************************************
+************************************************************
 ** Function implementation for Pop of a PriorityQueue
 **  Returns the node at the end of the queue
 ************************************************************
@@ -285,7 +341,80 @@ Node* PriorityQueue::pop() {
     if (this->count == 0) {
         return (Node*)OUT_OF_BOUNDS;
     }
-    Node* retNode = this->getNodeAtIndex(this->count-1);
+    Node* retNode = this->getMin();
     this->count--;
     return retNode;
+}
+
+/***********************************************************
+************************************************************
+** Function implementation for AStar
+**  Arguments are starting node and path queue
+** Returns a -1 if a path does not exist between nodes
+************************************************************
+************************************************************/
+
+int AStar(Node* startNode, Node* goalNode) {
+    if (startNode == (Node*)NULL || goalNode == (Node*)NULL) {
+        return NULL_ARG;
+    }
+    PriorityQueue *queue = new PriorityQueue(goalNode);
+    startNode->pathLength = 0;
+    queue->insert(startNode, 0);
+    PriorityQueue *deadNodes = new PriorityQueue(startNode);
+    float rc;
+    int i, deadPath;
+    deadPath = 0;
+    while (deadPath == 0) {
+        for (i = 0; i < queue->getNodeCount(); i++) {
+            if (queue->getHeuristicAtIndex(i) != INFINITY) {
+                deadPath = 0;
+                break;
+            }
+            else {
+
+                deadPath = 1;
+            }
+        }
+        if (deadPath == 1) {
+            break;
+        }
+        Node* currentNode = queue->getMin();
+        if (currentNode->neighborsHeuristic == (PriorityQueue*)NULL) {
+            currentNode->neighborsHeuristic = currentNode->getNeighbors(goalNode);
+        }
+        if (currentNode->neighborsHeuristic->getNodeCount() == 0) {
+            deadNodes->insert(currentNode, 0);
+            queue->removeNode(currentNode);
+            currentNode->pathLength = INFINITY;
+            queue->insert(currentNode, INFINITY);
+            continue;
+        }
+
+        Node* nextNode = currentNode->neighborsHeuristic->pop();
+
+        rc = queue->insert(nextNode, currentNode->pathLength + getNodeDistance(currentNode, nextNode));
+        if (rc == -2) {
+            deadNodes->insert(currentNode, 0);
+            queue->removeNode(currentNode);
+            currentNode->pathLength = INFINITY;
+            queue->insert(currentNode, INFINITY);
+        }
+        else if (rc == SUCCESS) {
+            nextNode->pathLength = currentNode->pathLength + getNodeDistance(currentNode, nextNode);
+            nextNode->previous = currentNode;
+        }
+
+    }
+
+    for (i = 0; i < queue->getNodeCount(); i++) {
+        queue->getNodeAtIndex(i)->resetNeighbors();
+    }
+
+    if (goalNode->previous != (Node*)NULL) {
+
+        return SUCCESS;
+    }
+
+    return -1;
 }
