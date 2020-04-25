@@ -55,7 +55,7 @@ typedef struct
  ** Class Prototypes for AtlasGraphTools
  ************************************************************
  ************************************************************/
-
+namespace Atlas {
 class Node;
 class PriorityQueue;
 int AStar(Node* startNode, Node* goalNode);
@@ -104,10 +104,6 @@ public:
 
     PriorityQueue* getNeighbors(Node* goalNode);
 
-    int getNeighborCount() const
-    {                             // Returns the number of neighbor connectios to this node
-        return this->neighborCount; // Inlined to eliminate function call overhead
-    }
 
     Node *getPrevious() const
     {
@@ -155,6 +151,6 @@ public:
         return this->count;
     }
 };
-
+}
 
 #endif /* end of include guard: AtlasGraphTools_h */

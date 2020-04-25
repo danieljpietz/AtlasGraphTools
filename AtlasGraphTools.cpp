@@ -6,7 +6,7 @@
  ** Arguments are x and y position of node in cartesian space
  ************************************************************
  ************************************************************/
-
+namespace Atlas {
 Node::Node(float x, float y)
 {
     this->nodeID = -1;
@@ -45,8 +45,7 @@ int Node::addNeighbor(Node *neighbor)
     int rc2 = neighbor->neighbors->insert(this, 0);
     this->neighborCount++;
     neighbor->neighborCount++;
-
-    return SUCCESS;
+    return (rc1&rc2);
 
 }
 
@@ -67,7 +66,7 @@ PriorityQueue* Node::getNeighbors(Node* goalNode) {
     }
     PriorityQueue *queue = new PriorityQueue(goalNode);
     int i;
-    for (i = 0; i < this->getNeighborCount(); i++) {
+    for (i = 0; i < this->getNeighbors()->getNodeCount(); i++) {
 
         queue->insert(this->neighbors->getNodeAtIndex(i), this->pathLength + getNodeDistance(this, this->neighbors->getNodeAtIndex(i)));
     }
@@ -361,7 +360,6 @@ int AStar(Node* startNode, Node* goalNode) {
     PriorityQueue *queue = new PriorityQueue(goalNode);
     startNode->pathLength = 0;
     queue->insert(startNode, 0);
-    PriorityQueue *deadNodes = new PriorityQueue(startNode);
     float rc;
     int i, deadPath;
     deadPath = 0;
@@ -384,7 +382,6 @@ int AStar(Node* startNode, Node* goalNode) {
             currentNode->neighborsHeuristic = currentNode->getNeighbors(goalNode);
         }
         if (currentNode->neighborsHeuristic->getNodeCount() == 0) {
-            deadNodes->insert(currentNode, 0);
             queue->removeNode(currentNode);
             currentNode->pathLength = INFINITY;
             queue->insert(currentNode, INFINITY);
@@ -393,9 +390,15 @@ int AStar(Node* startNode, Node* goalNode) {
 
         Node* nextNode = currentNode->neighborsHeuristic->pop();
 
+        if (nextNode == goalNode) {
+            goalNode->previous = currentNode;
+            std::cout << "I AM HERE" << std::endl;
+            break;
+            //return SUCCESS;
+        }
+
         rc = queue->insert(nextNode, currentNode->pathLength + getNodeDistance(currentNode, nextNode));
         if (rc == -2) {
-            deadNodes->insert(currentNode, 0);
             queue->removeNode(currentNode);
             currentNode->pathLength = INFINITY;
             queue->insert(currentNode, INFINITY);
@@ -404,17 +407,20 @@ int AStar(Node* startNode, Node* goalNode) {
             nextNode->pathLength = currentNode->pathLength + getNodeDistance(currentNode, nextNode);
             nextNode->previous = currentNode;
         }
-
     }
-
+    std::cout << "H" << std::endl;
     for (i = 0; i < queue->getNodeCount(); i++) {
+        std::cout << queue->getHeuristicAtIndex(i) << std::endl;
+        if (queue->getHeuristicAtIndex(i) != INFINITY) {
+            std::cout << "(" << queue->getNodeAtIndex(i)->getLocation().x << "," << queue->getNodeAtIndex(i)->getLocation().y << ")" << std::endl;
+        }
         queue->getNodeAtIndex(i)->resetNeighbors();
     }
 
     if (goalNode->previous != (Node*)NULL) {
-
         return SUCCESS;
     }
 
     return -1;
+}
 }
